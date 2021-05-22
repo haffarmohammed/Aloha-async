@@ -23,18 +23,18 @@ def miseAJourMachinesOccupees(Echeancier, dureeTrans, T):
 
 
 # Créer le scénarion
-def simul(Echeancier, loiPoisson, dureeTrans, k, lmbda, packetOfMachine):
+def simul(Echeancier, loiExpo, dureeTrans, k, lmbda, packetOfMachine):
     # Temps global
     Temps = 0
 
     # loiPoisson : tableu des valeurs aléatoires suivent la loi de poisson de paramétre lambda
-    for i in loiPoisson:
+    for i in loiExpo:
         # Récupérer les machines occupées à l'instant T
         machinesNotDispo = miseAJourMachinesOccupees(Echeancier, dureeTrans, Temps)
 
         # Si tous les machines sont occupées on avance le temps global jusqu'au il y aura au moin une machine libre
         while len(machinesNotDispo) == 10:
-            Temps += np.random.poisson(lmbda, 1)[0]
+            Temps += np.random.exponential(lmbda, 1)[0]
             machinesNotDispo = miseAJourMachinesOccupees(Echeancier, dureeTrans, Temps)
 
         # Récupérer les machines disponibles
@@ -56,13 +56,14 @@ def simul(Echeancier, loiPoisson, dureeTrans, k, lmbda, packetOfMachine):
             T_copis += dureeTrans
 
             # trouver un instant avec un interval inter paquets qui suit la loi de poisson de paramètre k * lambda
-            randInterval = np.random.poisson((k / 5) * k * lmbda, 1)[0]
+            randInterval = np.random.exponential(k * lmbda, 1)[0]
 
             # Verifier si la machine et disponible à l'instant T + interval inter paquets
             machinesNotDispo = miseAJourMachinesOccupees(Echeancier, dureeTrans, Temps + T_copis + randInterval)
-            while machine in machinesNotDispo:
-                randInterval += np.random.poisson(k * k * lmbda, 1)[0]
-                machinesNotDispo = miseAJourMachinesOccupees(Echeancier, dureeTrans, Temps + T_copis + randInterval)
+            # while machine in machinesNotDispo:
+            #     print("a")
+            #     randInterval += np.random.poisson(k * lmbda, 1)[0]
+            #     machinesNotDispo = miseAJourMachinesOccupees(Echeancier, dureeTrans, Temps + T_copis + randInterval)
 
             # Avancer le temps
             T_copis += randInterval

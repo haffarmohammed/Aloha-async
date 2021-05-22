@@ -11,8 +11,8 @@ def show(Echeancier, dureeTrans, index):
 
     df = []
     for e in Echeancier:
-        df.append(dict(Task=str(e.machine), Start=str(e.date + 1000) + '-01-01',
-                       Finish=str(e.date + dureeTrans + 1000) + '-01-01', Resource='M' + str(e.machine)))
+        df.append(dict(Task=str(e.machine), Start=str(int(e.date*10)),
+                       Finish=str(int(e.date * 10 + dureeTrans)) , Resource='M' + str(e.machine)))
 
     colors = {'M0': 'rgb(180, 170, 160)',
               'M1': 'rgb(220, 0, 0)',

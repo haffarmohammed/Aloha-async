@@ -3,7 +3,8 @@ import aloha as aloha
 from IRSA import IRSApure
 import matplotlib.pyplot as plt
 
-from plot import graphe
+from event import takeDate, takeMachine
+from plot import graphe, show
 
 
 class s():
@@ -16,11 +17,11 @@ class s():
 
 
 # Définition des paramètres
-kMax = 20
-lambdaMax = 10
-dureeTrans = 3
+kMax = 11
+lambdaMax = 2
+dureeTrans = 0.2
 nbrMachine = 10
-nbrPaquets = 100
+nbrPaquets = 1000
 
 
 # Initialisation
@@ -30,19 +31,19 @@ packetOfMachine = [1 for i in range(nbrMachine)]
 stat = [[], []]
 paquetSauves = 0
 indexFile = 0
-np.random.seed(3)
 
 
-for l in range(1, lambdaMax):
+
+for l in np.arange(0.3, 0.64, 0.05):
     print('lambda: ' + str(l))
     for k in range(1, kMax):
         print('k: ' + str(k))
 
-        # Générer la série des variable aléatoire de loi de poisson avec paramètre lambda
-        loiPoisson = np.random.poisson(l, nbrPaquets)
+        # Générer la série des variable aléatoire de loi exponontiel avec paramètre lambda
+        loiExpo = np.random.exponential(l, nbrPaquets)
 
         # Créer le scénario avec k copies pour chaque paquets
-        aloha.simul(Echeancier, loiPoisson, dureeTrans, k, l, packetOfMachine)
+        aloha.simul(Echeancier, loiExpo, dureeTrans, k, l, packetOfMachine)
 
         # Appliquer l'algorithme de l'IRSA / SIC
         paquetSauves = IRSApure(Echeancier, dureeTrans, indexFile)
@@ -62,3 +63,18 @@ for l in range(1, lambdaMax):
 
 # Sauvegarde et afficher le graphe
 graphe()
+
+# # Générer la série des variable aléatoire de loi exponontiel avec paramètre lambda
+# loiPoisson = np.random.exponential(1, nbrPaquets)
+#
+# # Créer le scénario avec k copies pour chaque paquets
+# aloha.simul(Echeancier, loiPoisson, dureeTrans, 3, 0.1, packetOfMachine)
+# # show(Echeancier, dureeTrans, 1)
+#
+# Echeancier.sort(key=takeMachine)
+# print(Echeancier)
+
+# paquetSauves = IRSApure(Echeancier, dureeTrans, indexFile)
+#
+# print(paquetSauves)
+

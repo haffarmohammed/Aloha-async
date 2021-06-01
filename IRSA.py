@@ -1,47 +1,76 @@
-def IRSApure(Echeancier, dureeTrans, indexFile, packetSauves=0):
-    packetNotInConflict = []
-    conflict = 0
+import numpy as np
+from event import event
 
-    while True:
-        # extraire les packets sans conflit
-        for e1 in Echeancier:
-            for e2 in Echeancier:
-                if (
-                        e2.date <= e1.date < e2.date + dureeTrans or e2.date < e1.date + dureeTrans <= e2.date + dureeTrans) and e1 != e2:
-                    conflict = 1
-                    break
-            if conflict == 0:
-                contains = 0
-                for e in packetNotInConflict:
-                    if e1.packet == e.packet and e1.machine == e.machine:
-                        contains = 1
-                if contains == 0:
-                    packetNotInConflict.append(e1)
-            else:
-                conflict = 0
 
-        # MAJ du nombre de paquets transmis avec succès
-        packetSauves += len(packetNotInConflict)
+# retourne les machine occupées à l'instant T
+def MajMachinesOccupees(Echeancier, dureeTrans, T):
+    MNotdispo = []
 
-        # [Condition d'arrét] si il n'y a pas de paquets à sauvé, on sort du boucle
-        if len(packetNotInConflict) == 0:
-            break
+    if len(Echeancier) == 0:
+        return []
+    else:
+        s = 0
+        while s < len(Echeancier):
+            # trouver les machine occupés dans l'intervat [T, T + la durée de transition d'un paquet]
+            if Echeancier[s].date + dureeTrans > T >= Echeancier[s].date or \
+                    Echeancier[s].date < T + dureeTrans <= Echeancier[s].date + dureeTrans:
 
-        arr = Echeancier.copy()
-        # Supprimer les paquet sans conflit et ses copies
-        for e2 in Echeancier:
-            for e1 in packetNotInConflict:
-                if e1.machine == e2.machine and e1.packet == e2.packet:
-                    if e2 in arr:
-                        arr.remove(e2)
-        Echeancier = arr.copy()
-        arr.clear()
+                # Si la mchine n'etait pas déja occupée, on l'ajoute à "MNotdispo"
+                if Echeancier[s].machine not in MNotdispo:
+                    MNotdispo.append(Echeancier[s].machine)
+            s += 1
+        return MNotdispo
 
-        packetNotInConflict.clear()
 
-    # Plot ds paquets
-    # plot.show(Echeancier, dureeTrans, indexFile)
-    # indexFile += 1
+# Créer le scénarion
+def createScenario(Echeancier, loiExpo, dureeTrans, k, unSurLambda, packetOfMachine):
+    # Temps global
+    Temps = 0
 
-    print(packetSauves)
-    return packetSauves
+    # loiExpo : tableu des valeurs aléatoires suivent la loi exponentiel de paramètre lambda
+    for i in loiExpo:
+        # Récupérer les machines occupées à l'instant T
+        machinesNotDispo = MajMachinesOccupees(Echeancier, dureeTrans, Temps)
+
+        # Si tous les machines sont occupées on avance le temps global jusqu'il y aura au moins une machine libre
+        while len(machinesNotDispo) == 10:
+            Temps += np.random.exponential(unSurLambda, 1)[0]
+            machinesNotDispo = MajMachinesOccupees(Echeancier, dureeTrans, Temps)
+
+        # Récupérer les machines disponibles
+        machineDispo = []
+        for m in range(10):
+            if m not in machinesNotDispo:
+                machineDispo.append(m)
+
+        # Choisir d'une facon uniforme la prochaine machine qui va transmettre un paquet parmi les machines disponibles
+        machine = machineDispo[np.random.randint(0, len(machineDispo), 1)[0]]
+
+        # Ajouter évènement à l'échéancier
+        ptr = event(Temps, machine, packetOfMachine[machine])
+        Echeancier.append(ptr)
+
+        # Ajouter les copies du paquets à l'échéancier
+        T_copis = 0
+        for j in range(k - 1):
+            T_copis += dureeTrans
+
+            # trouver un instant avec un interval inter paquets qui suit la loi exponentiel de paramètre 1/(k * lambda)
+            randInterval = np.random.exponential(unSurLambda / k, 1)[0]
+
+            # Avancer le temps
+            T_copis += randInterval
+
+            # Ajouter la copie à l'écheancier
+            ptr = event(Temps + T_copis, machine, packetOfMachine[machine])
+            Echeancier.append(ptr)
+
+            machinesNotDispo.clear()
+
+        # MAJ du nombre de paquets transmis par la machine i
+        packetOfMachine[machine] += 1
+
+        # Avancer le temps global
+        Temps += i
+
+        machinesNotDispo.clear()

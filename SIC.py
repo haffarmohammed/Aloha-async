@@ -1,4 +1,4 @@
-def IRSApure(Echeancier, dureeTrans, packetSauves=0):
+def SIC(Echeancier, dureeTrans, packetSauves=0):
     packetNotInConflict = []
     conflict = 0
 

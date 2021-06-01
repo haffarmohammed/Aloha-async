@@ -1,8 +1,8 @@
 from decimal import Decimal, ROUND_HALF_UP
 
 import numpy as np
-import IRSA as aloha
-from SIC import IRSApure
+import IRSA as IRSA
+from SIC import SIC
 import matplotlib.pyplot as plt
 from plot import generateGraphe
 
@@ -42,9 +42,9 @@ for l in np.arange(1.0, 3.0, 0.3):
             # Genérer la série des variable aléatoire de loi exponontiel avec paramètre lambda
             loiExpo = np.random.exponential(1 / l, nbrPaquets)
             # Créer le scénario avec k copies pour chaque paquets
-            aloha.createScenario(Echeancier, loiExpo, dureeTrans, k, l, packetOfMachine)
+            IRSA.createScenario(Echeancier, loiExpo, dureeTrans, k, l, packetOfMachine)
             # Appliquer l'algorithme de SIC
-            paquetSauves = IRSApure(Echeancier, dureeTrans)
+            paquetSauves = SIC(Echeancier, dureeTrans)
             # Sauvegarder les résultats
             arr.append(paquetSauves)
             Echeancier = []
